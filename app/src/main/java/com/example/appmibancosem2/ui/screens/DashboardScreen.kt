@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Payment
 import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.RequestPage
 import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -60,6 +61,7 @@ fun DashboardScreen(
                     modifier = Modifier.size(34.dp)
                 )
                 Spacer(Modifier.padding(4.dp))
+                Spacer(Modifier.padding(4.dp))
                 Column {
                     Text(
                         text = "Hola, ${DemoData.cuenta.titular.split(" ").first()}",
@@ -87,6 +89,7 @@ fun DashboardScreen(
                         BotonAccesoRapido(Icons.Default.AccountBalance, "Préstamo", GoldAccent) { onNavigateTo(Screen.Prestamos) }
                         BotonAccesoRapido(Icons.Default.Savings, "Ahorro", NavyLight) { onNavigateTo(Screen.Ahorro) }
                         BotonAccesoRapido(Icons.Default.Receipt, "Historial", NavyPrimary) { onNavigateTo(Screen.Transacciones) }
+                        BotonAccesoRapido(Icons.Default.RequestPage, "Credito", GreenPositive) {onNavigateTo(Screen.SolicitudCredito)}
                     }
                 }
             }

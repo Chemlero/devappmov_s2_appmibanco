@@ -57,5 +57,10 @@ fun MiBancoNavGraph(navController: NavHostController) {
         composable(Screen.Ahorro.route) {
             AhorroScreen(onBack = { navController.popBackStack() })
         }
+        composable(Screen.SolicitudCredito.route) {
+            SolicitudCreditoScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
     }
 }
