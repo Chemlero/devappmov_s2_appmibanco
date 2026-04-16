@@ -1,9 +1,11 @@
 package com.example.appmibancosem2.ui.screens
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,12 +20,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -43,9 +48,19 @@ import com.example.appmibancosem2.ui.theme.NavyPrimary
 
 @Composable
 fun LoginScreen(onLoginSuccess: () -> Unit) {
+    val contexto = LocalContext.current
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var error by remember { mutableStateOf("") }
+    var recordarSesion by remember { mutableStateOf(false) }
+
+    // Cargar el correo y la contraseña guardados al iniciar la pantalla
+    LaunchedEffect(Unit) {
+        val prefs = contexto.getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
+        email = prefs.getString("email", "") ?: ""
+        password = prefs.getString("password", "") ?: ""
+        recordarSesion = prefs.getBoolean("recordar_sesion", false)
+    }
 
     Box(
         modifier = Modifier
@@ -88,6 +103,17 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 )
 
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = recordarSesion,
+                        onCheckedChange = { recordarSesion = it }
+                    )
+                    Text("Recordar sesión", color = NavyDark, fontSize = 14.sp)
+                }
+
                 if (error.isNotEmpty()) {
                     Text(error, color = MaterialTheme.colorScheme.error, fontSize = 13.sp)
                 }
@@ -99,6 +125,22 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                             !email.contains("@") -> "Ingresa un correo válido"
                             password.length < 4 -> "La contraseña es demasiado corta"
                             else -> {
+                                // Guardar el correo, la contraseña y el estado de "recordar sesión" si está activado
+                                if (recordarSesion) {
+                                    contexto.getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
+                                        .edit()
+                                        .putString("email", email)
+                                        .putString("password", password)
+                                        .putBoolean("recordar_sesion", true)
+                                        .apply()
+                                } else {
+                                    contexto.getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
+                                        .edit()
+                                        .remove("email")
+                                        .remove("password")
+                                        .putBoolean("recordar_sesion", false)
+                                        .apply()
+                                }
                                 onLoginSuccess()
                                 ""
                             }
