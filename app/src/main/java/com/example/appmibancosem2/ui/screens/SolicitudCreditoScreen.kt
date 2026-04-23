@@ -14,26 +14,30 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.appmibancosem2.data.local.SolicitudDatabase
+import com.example.appmibancosem2.data.model.SolicitudCredito
+import com.example.appmibancosem2.navigation.Screen
 import com.example.appmibancosem2.ui.theme.*
-import androidx.compose.ui.text.font.FontWeight
 
 @Composable
-fun SolicitudCreditoScreen(onBack: () -> Unit) {
+fun SolicitudCreditoScreen(
+    onBack: () -> Unit,
+    onNavigateTo: (Screen) -> Unit  // Parámetro para navegación
+) {
     val contexto = LocalContext.current
     var monto by remember { mutableStateOf("") }
     var plazo by remember { mutableStateOf("") }
     var tipo by remember { mutableStateOf("") }
     var dni by remember { mutableStateOf("") }
     var mostrarDialogoEnvio by remember { mutableStateOf(false) }
-    var mostrarDialogoHistorial by remember { mutableStateOf(false) }
     var mostrarDialogoBorrador by remember { mutableStateOf(false) }
-    var mostrarDialogoLimpiarHis by remember { mutableStateOf(false) }
-    var textoHistorial by remember { mutableStateOf("") }
     var mensajeError by remember { mutableStateOf("") }
 
+    // Cargar datos guardados en SharedPreferences al iniciar
     LaunchedEffect(Unit) {
         val prefs = contexto.getSharedPreferences("borrador_solicitud", Context.MODE_PRIVATE)
         monto = prefs.getString("sol_monto", "") ?: ""
@@ -42,6 +46,7 @@ fun SolicitudCreditoScreen(onBack: () -> Unit) {
         dni = prefs.getString("sol_dni", "") ?: ""
     }
 
+    // Guardar datos en SharedPreferences
     fun guardar(clave: String, valor: String) {
         contexto.getSharedPreferences("borrador_solicitud", Context.MODE_PRIVATE)
             .edit()
@@ -49,6 +54,7 @@ fun SolicitudCreditoScreen(onBack: () -> Unit) {
             .apply()
     }
 
+    // Limpiar borrador
     fun limpiarBorrador() {
         contexto.getSharedPreferences("borrador_solicitud", Context.MODE_PRIVATE)
             .edit()
@@ -82,6 +88,7 @@ fun SolicitudCreditoScreen(onBack: () -> Unit) {
                 color = GoldAccent
             )
 
+            // Campos del formulario
             CampoSolicitud(
                 label = "Monto solicitado (S/)",
                 valor = monto,
@@ -133,6 +140,7 @@ fun SolicitudCreditoScreen(onBack: () -> Unit) {
 
             Spacer(Modifier.height(8.dp))
 
+            // Botón para enviar solicitud
             Button(
                 onClick = {
                     if (monto.isEmpty() || plazo.isEmpty() || tipo.isEmpty() || dni.isEmpty()) {
@@ -153,11 +161,9 @@ fun SolicitudCreditoScreen(onBack: () -> Unit) {
                 )
             }
 
+            // Botón para navegar al historial
             OutlinedButton(
-                onClick = {
-                    textoHistorial = LogManager.obtenerHistorial(contexto)
-                    mostrarDialogoHistorial = true
-                },
+                onClick = { onNavigateTo(Screen.Historial) },  // Navegar a HistorialSolicitudesScreen
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(10.dp)
             ) {
@@ -167,6 +173,7 @@ fun SolicitudCreditoScreen(onBack: () -> Unit) {
                 )
             }
 
+            // Botón para limpiar borrador
             TextButton(
                 onClick = { mostrarDialogoBorrador = true },
                 modifier = Modifier.fillMaxWidth()
@@ -179,7 +186,7 @@ fun SolicitudCreditoScreen(onBack: () -> Unit) {
         }
     }
 
-    // Diálogos
+    // Diálogo de confirmación de envío
     if (mostrarDialogoEnvio) {
         AlertDialog(
             onDismissRequest = { mostrarDialogoEnvio = false },
@@ -196,8 +203,20 @@ fun SolicitudCreditoScreen(onBack: () -> Unit) {
             confirmButton = {
                 Button(
                     onClick = {
+                        // 1. Registrar en archivo de texto
                         val detalle = "Monto: S/ $monto | Plazo: $plazo meses | Tipo: $tipo | DNI: $dni"
                         LogManager.registrar(contexto, detalle)
+                        // 2. Guardar en SQLite
+                        val sqlDb = SolicitudDatabase(contexto)
+                        sqlDb.insertar(
+                            SolicitudCredito(
+                                monto = monto.toDoubleOrNull() ?: 0.0,
+                                plazoMeses = plazo.toIntOrNull() ?: 0,
+                                tipo = tipo,
+                                dni = dni,
+                                estado = "pendiente"
+                            )
+                        )
                         limpiarBorrador()
                         mostrarDialogoEnvio = false
                     },
@@ -209,52 +228,7 @@ fun SolicitudCreditoScreen(onBack: () -> Unit) {
         )
     }
 
-    if (mostrarDialogoHistorial) {
-        AlertDialog(
-            onDismissRequest = { mostrarDialogoHistorial = false },
-            title = { Text("Historial de Solicitudes", fontWeight = FontWeight.Bold) },
-            text = { Text(text = textoHistorial, fontSize = 12.sp, color = NavyDark) },
-            confirmButton = {
-                TextButton(onClick = { mostrarDialogoHistorial = false }) {
-                    Text("Cerrar", color = NavyPrimary)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    mostrarDialogoHistorial = false
-                    mostrarDialogoLimpiarHis = true
-                }) {
-                    Text("Limpiar historial", color = RedNegative)
-                }
-            }
-        )
-    }
-
-    if (mostrarDialogoLimpiarHis) {
-        AlertDialog(
-            onDismissRequest = { mostrarDialogoLimpiarHis = false },
-            title = { Text("Limpiar historial", fontWeight = FontWeight.Bold) },
-            text = { Text("¿Eliminar todo el historial de solicitudes?") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        LogManager.registrar(contexto, "--- Historial limpiado por el usuario ---")
-                        LogManager.limpiarHistorial(contexto)
-                        mostrarDialogoLimpiarHis = false
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = RedNegative)
-                ) {
-                    Text("Sí, eliminar")
-                }
-            },
-            dismissButton = {
-                OutlinedButton(onClick = { mostrarDialogoLimpiarHis = false }) {
-                    Text("Cancelar")
-                }
-            }
-        )
-    }
-
+    // Diálogo para limpiar borrador
     if (mostrarDialogoBorrador) {
         AlertDialog(
             onDismissRequest = { mostrarDialogoBorrador = false },
@@ -280,6 +254,7 @@ fun SolicitudCreditoScreen(onBack: () -> Unit) {
     }
 }
 
+// Componente reutilizable para campos del formulario
 @Composable
 private fun CampoSolicitud(
     label: String,

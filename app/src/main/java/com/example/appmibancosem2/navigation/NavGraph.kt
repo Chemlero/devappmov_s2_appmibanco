@@ -1,6 +1,5 @@
 package com.example.appmibancosem2.navigation
 
-
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -10,7 +9,7 @@ import com.example.appmibancosem2.ui.screens.*
 @Composable
 fun MiBancoNavGraph(navController: NavHostController) {
     NavHost(
-        navController    = navController,
+        navController = navController,
         startDestination = Screen.Login.route
     ) {
         // M1 - Login
@@ -57,8 +56,20 @@ fun MiBancoNavGraph(navController: NavHostController) {
         composable(Screen.Ahorro.route) {
             AhorroScreen(onBack = { navController.popBackStack() })
         }
+
+        // Solicitud de Crédito
         composable(Screen.SolicitudCredito.route) {
             SolicitudCreditoScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateTo = { screen ->
+                    navController.navigate(screen.route)
+                }
+            )
+        }
+
+        // Historial de Solicitudes
+        composable(Screen.Historial.route) {
+            HistorialSolicitudesScreen(
                 onBack = { navController.popBackStack() }
             )
         }

@@ -61,7 +61,6 @@ fun DashboardScreen(
                     modifier = Modifier.size(34.dp)
                 )
                 Spacer(Modifier.padding(4.dp))
-                Spacer(Modifier.padding(4.dp))
                 Column {
                     Text(
                         text = "Hola, ${DemoData.cuenta.titular.split(" ").first()}",
@@ -77,9 +76,22 @@ fun DashboardScreen(
                 TarjetaCuenta(cuenta = cuenta)
             }
 
-            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("Accesos rápidos", fontWeight = FontWeight.SemiBold, color = NavyDark, fontSize = 15.sp)
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        "Accesos rápidos",
+                        fontWeight = FontWeight.SemiBold,
+                        color = NavyDark,
+                        fontSize = 15.sp
+                    )
+
+                    // Fila 1: Pagar, Préstamo, Ahorro
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -88,16 +100,44 @@ fun DashboardScreen(
                         BotonAccesoRapido(Icons.Default.Payment, "Pagar", GreenPositive) { onNavigateTo(Screen.Pagos) }
                         BotonAccesoRapido(Icons.Default.AccountBalance, "Préstamo", GoldAccent) { onNavigateTo(Screen.Prestamos) }
                         BotonAccesoRapido(Icons.Default.Savings, "Ahorro", NavyLight) { onNavigateTo(Screen.Ahorro) }
-                        BotonAccesoRapido(Icons.Default.Receipt, "Historial", NavyPrimary) { onNavigateTo(Screen.Transacciones) }
-                        BotonAccesoRapido(Icons.Default.RequestPage, "Credito", GreenPositive) {onNavigateTo(Screen.SolicitudCredito)}
+                    }
+
+                    // Fila 2: Crédito e Historial
+                    Spacer(Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        BotonAccesoRapido(
+                            icono = Icons.Default.RequestPage,
+                            etiqueta = "Crédito",
+                            color = GreenPositive,
+                            onClick = { onNavigateTo(Screen.SolicitudCredito) }
+                        )
+                        BotonAccesoRapido(
+                            icono = Icons.Default.Receipt,
+                            etiqueta = "Historial",
+                            color = NavyPrimary,
+                            onClick = { onNavigateTo(Screen.Transacciones) }
+                        )
                     }
                 }
             }
 
-            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Últimos movimientos", fontWeight = FontWeight.SemiBold, color = NavyDark)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            "Últimos movimientos",
+                            fontWeight = FontWeight.SemiBold,
+                            color = NavyDark
+                        )
                         TextButton(onClick = { onNavigateTo(Screen.Transacciones) }) {
                             Text("Ver todos", color = GoldAccent, fontSize = 12.sp)
                         }
@@ -108,7 +148,10 @@ fun DashboardScreen(
                 }
             }
 
-            OutlinedButton(onClick = onLogout, modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(
+                onClick = onLogout,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 androidx.compose.material3.Icon(Icons.Default.Logout, null)
                 Spacer(Modifier.padding(4.dp))
                 Text("Cerrar sesión")
